@@ -158,6 +158,29 @@ Returns: `status`, `plaintext`, `signature`, `publicKeyString`
 
 `publicKeyString`: public key string of the signature (presumably the sender). **Returned even if the signature appears to be forged**.
 
+## php Notes (server side)
+
+cryptico.js don't directly recognize the public key in pem format (which openssl use). we have to extract the 'n' and 'e' part of a public key in php side:
+
+```php
+$res = openssl_pkey_new(array( 
+  'digest_alg' => 'sha256',
+  'private_key_bits' => 1024,
+  'private_key_type' => OPENSSL_KEYTYPE_RSA,
+));
+
+$detail = openssl_pkey_get_details($res);
+$n = base64_encode($detail['rsa']['n']);
+$e = bin2hex($detail['rsa']['e']);
+```
+
+javascript side:
+
+```javascript
+var pubKey = "{$n}|{$e}";
+encrypted = cryptico.encrypt("plain text", pubKey);
+```
+
 # Encryption Technical Documentation
 
 ## Key generation
